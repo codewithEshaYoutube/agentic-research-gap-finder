@@ -1,19 +1,27 @@
-# 💬 Chatbot template
+# 🧠 Research Agentic AI App
 
-A simple Streamlit app that shows how to build a chatbot using OpenAI's GPT-3.5.
+A **Research Agentic AI system** that analyzes academic papers, identifies gaps, suggests future research directions, generates research questions, and answers queries—all autonomously.  
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://chatbot-template.streamlit.app/)
+💻 **Live Demo:** [Agentic Research Gap Finder](https://agentic-research-gap-finder.streamlit.app/)
 
-### How to run it on your own machine
+---
 
-1. Install the requirements
+## 🔹 Features
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+- Upload PDF research papers
+- Automatic summarization of complex papers
+- Identify research gaps / limitations
+- Suggest future research directions
+- Generate research questions
+- Answer custom queries
+- Agentic reasoning loop (human-like analysis)
 
-2. Run the app
+---
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+## 🛠 Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/ResearchAgenticAI.git
+cd ResearchAgenticAI
