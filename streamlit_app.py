@@ -1,56 +1,109 @@
+# app.py
+# 🧠 Research Agentic AI - Streamlit App
+# Summarizes research papers, finds gaps, suggests research directions
+# Works with latest Transformers & Streamlit
+
 import streamlit as st
-from openai import OpenAI
+from PyPDF2 import PdfReader
+from transformers import pipeline
 
-# Show title and description.
-st.title("💬 Chatbot")
-st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
-)
+st.set_page_config(page_title="Research Agentic AI", layout="wide")
+st.title("🧠 Research Agentic AI App")
+st.write("Upload a research paper (PDF) and let the agent analyze gaps, suggest directions, and generate research questions!")
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+# -----------------------
+# Load Hugging Face Models
+# -----------------------
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+# Summarization (text2text-generation works with latest transformers)
+summarizer = pipeline("text2text-generation", model="facebook/bart-large-cnn")
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+# Agent reasoning: Find gaps, suggest directions, answer questions
+generator = pipeline("text-generation", model="gpt2")
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+# -----------------------
+# UI: Upload PDF
+# -----------------------
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
+uploaded_file = st.file_uploader("Upload a research paper (PDF)", type=["pdf"])
 
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+if uploaded_file:
+    try:
+        pdf = PdfReader(uploaded_file)
+        text = ""
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+        if not text.strip():
+            st.warning("⚠️ No text could be extracted from this PDF.")
+        else:
+            st.subheader("📄 Paper Extracted Text (Preview)")
+            st.write(text[:1000] + "...")  # preview first 1000 chars
 
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
+            # -----------------------
+            # Summarize Paper
+            # -----------------------
+            st.write("🔄 Summarizing paper...")
+            summary = summarizer(
+                text, max_length=150, min_length=50, do_sample=False
+            )[0]['generated_text']
+            st.subheader("📝 Summary:")
+            st.write(summary)
 
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+            # -----------------------
+            # Analyze Gaps
+            # -----------------------
+            st.write("🔍 Agent analyzing research gaps...")
+            gaps = generator(
+                f"Analyze this research summary and list potential loopholes or gaps:\n{summary}",
+                max_length=150,
+                do_sample=True,
+                temperature=0.7
+            )[0]['generated_text']
+            st.subheader("⚠️ Potential Research Gaps / Loopholes:")
+            st.write(gaps)
+
+            # -----------------------
+            # Suggest Research Directions
+            # -----------------------
+            st.write("🚀 Agent suggesting research directions...")
+            directions = generator(
+                f"Based on the research gaps, suggest future research directions:\n{gaps}",
+                max_length=150,
+                do_sample=True,
+                temperature=0.7
+            )[0]['generated_text']
+            st.subheader("🚀 Suggested Research Directions:")
+            st.write(directions)
+
+            # -----------------------
+            # Generate Research Questions
+            # -----------------------
+            st.write("❓ Generate Research Questions")
+            questions = generator(
+                f"Generate 3 research questions based on the summary and gaps:\n{summary}\n{gaps}",
+                max_length=150,
+                do_sample=True,
+                temperature=0.7
+            )[0]['generated_text']
+            st.subheader("❓ Research Questions:")
+            st.write(questions)
+
+            # -----------------------
+            # Optional User Query
+            # -----------------------
+            st.write("💡 Optional: Ask a custom question about this paper")
+            user_q = st.text_input("Ask a question about this research paper:")
+            if user_q:
+                answer = generator(
+                    f"Answer this question based on the summary and gaps:\nSummary: {summary}\nGaps: {gaps}\nQuestion: {user_q}",
+                    max_length=150,
+                    do_sample=True,
+                    temperature=0.7
+                )[0]['generated_text']
+                st.subheader("💡 Answer:")
+                st.write(answer)
+
+    except Exception as e:
+        st.error(f"❌ Error reading PDF: {e}")
