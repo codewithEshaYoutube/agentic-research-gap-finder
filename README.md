@@ -2,7 +2,7 @@
 
 > An autonomous AI system that reads academic papers, uncovers research gaps, suggests future directions, and answers custom queries — all in one pipeline.
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Streamlit-FF4B4B?style=for-the-badge)](https://agentic-research-gap-finder.streamlit.app/)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Streamlit-FF4B4B?style=for-the-badge)](https://agenticresearchgap.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
@@ -32,7 +32,7 @@
 
 Try it instantly — no setup required:
 
-🔗 **[agentic-research-gap-finder.streamlit.app](https://agentic-research-gap-finder.streamlit.app/)**
+🔗 **[agenticresearchgap.streamlit.app](https://agenticresearchgap.streamlit.app/)**
 
 ---
 
